@@ -1,20 +1,29 @@
 import { useState, useCallback } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
-import { SectionComedy } from "./components/SectionComedy";
-import { SectionWork } from "./components/SectionWork";
-import { SectionProjects } from "./components/SectionProjects";
-import { SectionWriting } from "./components/SectionWriting";
-import { SectionContact } from "./components/SectionContact";
+import { RecentPosts } from "./components/RecentPosts";
+import { BlogPage } from "./pages/BlogPage";
+import { BlogPostPage } from "./pages/BlogPostPage";
+import { ComedyPage } from "./pages/ComedyPage";
+import { WorkPage } from "./pages/WorkPage";
+import { ProjectsPage } from "./pages/ProjectsPage";
+import { ContactPage } from "./pages/ContactPage";
 
-const SECTIONS = [
-  { id: "comedy", label: "Comedy", Component: SectionComedy },
-  { id: "work", label: "Work", Component: SectionWork },
-  { id: "writing", label: "Writing", Component: SectionWriting },
-  { id: "projects", label: "Projects", Component: SectionProjects },
-  { id: "contact", label: "Contact", Component: SectionContact },
-] as const;
+interface NavItem {
+  id: string;
+  label: string;
+  to: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { id: "blog", label: "Blog", to: "/blog" },
+  { id: "comedy", label: "Comedy", to: "/comedy" },
+  { id: "work", label: "Work", to: "/work" },
+  { id: "projects", label: "Projects", to: "/projects" },
+  { id: "contact", label: "Contact", to: "/contact" },
+];
 
 function shuffle<T>(array: T[]): T[] {
   const result = [...array];
@@ -25,32 +34,48 @@ function shuffle<T>(array: T[]): T[] {
   return result;
 }
 
-function App() {
-  const [order, setOrder] = useState(() => SECTIONS.map((s) => s.id));
+function AppInner() {
+  const [navOrder, setNavOrder] = useState(() => NAV_ITEMS.map((i) => i.id));
 
   const handleReorder = useCallback(() => {
-    setOrder((prev) => {
-      const withoutContact = prev.filter((id) => id !== "contact");
-      return [...shuffle(withoutContact), "contact"];
-    });
+    setNavOrder((prev) => shuffle(prev));
   }, []);
 
-  const orderedSections = order
-    .map((id) => SECTIONS.find((s) => s.id === id))
-    .filter((s): s is (typeof SECTIONS)[number] => s != null);
+  const orderedNav = navOrder
+    .map((id) => NAV_ITEMS.find((i) => i.id === id))
+    .filter((i): i is NavItem => i != null);
 
   return (
     <div className="app">
-      <Header sectionOrder={order} onReorder={handleReorder} />
+      <Header navItems={orderedNav} onReorder={handleReorder} />
       <main>
-        <Hero />
-        {orderedSections.map(({ id, Component }) => (
-          <section key={id} id={id}>
-            <Component />
-          </section>
-        ))}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <Hero />
+                <RecentPosts />
+              </>
+            }
+          />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<BlogPostPage />} />
+          <Route path="/comedy" element={<ComedyPage />} />
+          <Route path="/work" element={<WorkPage />} />
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+        </Routes>
       </main>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppInner />
+    </BrowserRouter>
   );
 }
 

@@ -1,4 +1,4 @@
-export function SectionWork() {
+export function WorkPage() {
   return (
     <div className="section">
       <h2>Work</h2>

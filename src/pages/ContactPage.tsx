@@ -1,4 +1,4 @@
-export function SectionContact() {
+export function ContactPage() {
   return (
     <div className="section">
       <h2>Contact</h2>
